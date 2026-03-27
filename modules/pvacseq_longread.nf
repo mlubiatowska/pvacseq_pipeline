@@ -9,8 +9,8 @@ process PvacseqLongread {
     output:
     tuple val(name), path("${name}_neoag")
 
-    containerOptions "--bind /mnt:/mnt --bind /data:/data \${task.workDir}/tmp:/tmp"
-
+    containerOptions "--bind /mnt:/mnt --bind /data:/data --bind ${task.workDir}/tmp:/tmp"
+    
     script:
     """
     # Nextflow working directory is already mounted in container
