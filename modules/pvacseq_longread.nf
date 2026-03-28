@@ -9,8 +9,8 @@ process PvacseqLongread {
     output:
     tuple val(name), path("${name}_neoag")
 
-    containerOptions "--bind /mnt:/mnt --bind /data:/data --bind ${task.workDir}/tmp:/tmp"
-    
+    //containerOptions "--bind /mnt:/mnt --bind /data:/data --bind ${task.workDir}/tmp:/tmp"
+
     script:
     """
     # Nextflow working directory is already mounted in container
@@ -22,6 +22,7 @@ process PvacseqLongread {
     export TEMP=\${PWD}/tmp
     export TMP=\${PWD}/tmp
     export SINGULARITY_TMPDIR=\${PWD}/tmp  # Also add this
+    export APPTAINERENV_TMPDIR=\${PWD}/tmp
     export APPTAINER_TMPDIR=\${PWD}/tmp     # And this
 
     # Extract HLA alleles and format for pVACseq
