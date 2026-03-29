@@ -1,7 +1,7 @@
 process PvacseqLongread {
     cpus params.cpus
     tag "${name}" 
-    container '/data/scratch/shared/SINGULARITY-DOWNLOAD/tools/.singularity/pvactools_latest.sif'
+    container '/data/scratch/DGE/DUDGE/MOPOPGEN/mlubiatowska/pvacseq/pvactools/pvactools.sif'
 
     input:
     tuple val(name), path(annotated_tumour_vcf), path(annotated_tumour_vcf_tbi), path(proximal_vcf), path(proximal_vcf_tbi), path(hla_alleles)
