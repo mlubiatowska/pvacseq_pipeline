@@ -1,21 +1,28 @@
-#!/usr/bin/env nextflow
-
 process PvacseqLongread {
     cpus params.cpus
     tag "${name}" 
-
-    //scratch '/data/scratch/DGE/DUDGE/MOPOPGEN/mlubiatowska/tmp'
-    //'$SCRATCH_TMPDIR'
+    container '/data/scratch/shared/SINGULARITY-DOWNLOAD/tools/.singularity/pvactools_latest.sif'
 
     input:
-    tuple val (name), path(annotated_tumour_vcf), path(annotated_tumour_vcf_tbi), path(proximal_vcf), path(proximal_vcf_tbi), path(hla_alleles)
+    tuple val(name), path(annotated_tumour_vcf), path(annotated_tumour_vcf_tbi), path(proximal_vcf), path(proximal_vcf_tbi), path(hla_alleles)
 
     output:
     tuple val(name), path("${name}_neoag")
 
     script:
     """
-    #extracting the column alleles HLA from the input tsv file and adding HLA before the allele names to fit pvacseq format
+    # Nextflow working directory is already mounted in container
+    # CREATE SUBDIRECTORY - Keeps work dir clean and Create a short-path temp directory in /tmp
+    PVAC_TMP=/tmp/pvac_${name}_\$\$
+    mkdir -p \${PVAC_TMP}
+    export TMPDIR=\${PVAC_TMP}
+    export TEMP=\${PVAC_TMP}
+    export TMP=\${PVAC_TMP}
+    export SINGULARITY_TMPDIR=\${PVAC_TMP}
+    export APPTAINERENV_TMPDIR=\${PVAC_TMP}
+    export APPTAINER_TMPDIR=\${PVAC_TMP}
+
+    # Extract HLA alleles and format for pVACseq
     awk -F'\\t' '
         NR==1 {
             for (i=1; i<=NF; i++) if (\$i=="Allele") col=i
