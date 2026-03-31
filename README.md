@@ -1,4 +1,4 @@
-This is Nextflow pipeline I run for pvacseq. This pipeline in run in Nextflow (v25).
+**This is Nextflow pipeline I run for pvacseq. This pipeline in run in Nextflow (v25).**
 
 The pipeline loads picard/3.3.0-Java-17, GATK/4.4.0.0-GCCcore-12.3.0-Java-17, BCFtools/1.11 (specified in config file), and load conda env bio-perl-env.yml (saved in this directory.
  
@@ -8,12 +8,12 @@ The singularity includes v4.2.0 of pvactools.
 
 Check the config file to provide paths to programmes/packages/modules as necessary
 
-The command for running the pipeline looks like this:
+[The command for running the pipeline looks like this:
 nextflow run ${WORKFLOW_DIR}/main.nf \
     --input ${INPUT_FILE} \
     --outdir ${OUTPUT_DIR} \
     --ref ${REF_DIR} \
-    --expression ${EXPRESSION_MATRIX}
+    --expression ${EXPRESSION_MATRIX}](https://github.com/mlubiatowska/pvacseq_pipeline)
 
 It takes arguments:
 --input is a comma-separeted table (csv) without a header, with sample name, path to phased normal vcf, somatic vcf (unphased), haplotagged tumour bam, normal bam, and path to HLA-LA output (R1 bestguesses.txt)
