@@ -4,7 +4,7 @@ The pipeline loads picard/3.3.0-Java-17, GATK/4.4.0.0-GCCcore-12.3.0-Java-17, BC
  
 It used 2 singularity images - one is /data/scratch/DMP/DUDMP/MYEGRP/ahyde01/lumos/singularity/whatshap_2.3.sif and another is /data/scratch/shared/SINGULARITY-DOWNLOAD/tools/.singularity/pvactools_latest.sif.
 
-The singularity includes v4.2.0 of pvactools.
+The singularity includes v6.0.5 of pvactools.
 
 Check the config file to provide paths to programmes/packages/modules as necessary
 
