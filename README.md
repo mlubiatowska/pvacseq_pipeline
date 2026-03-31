@@ -2,7 +2,7 @@
 
 The pipeline loads picard/3.3.0-Java-17, GATK/4.4.0.0-GCCcore-12.3.0-Java-17, BCFtools/1.11 (specified in config file), and load conda env bio-perl-env.yml (saved in this directory.
  
-It used 2 singularity images - one is /data/scratch/DMP/DUDMP/MYEGRP/ahyde01/lumos/singularity/whatshap_2.3.sif and another is /data/scratch/shared/SINGULARITY-DOWNLOAD/tools/.singularity/pvactools_latest.sif.
+It used 2 singularity images - one is /data/scratch/DMP/DUDMP/MYEGRP/ahyde01/lumos/singularity/whatshap_2.3.sif and another is /data/scratch/DGE/DUDGE/MOPOPGEN/mlubiatowska/pvacseq/pvactools/pvactools.sif.
 
 The singularity includes v6.0.5 of pvactools.
 
