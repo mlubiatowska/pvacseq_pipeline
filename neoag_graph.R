@@ -307,37 +307,3 @@ analyses <- function(out_df) {
     )
   )
 }
-
-#####################################################################
-##########Applying functions
-#####################################################################
-setwd('/Volumes/DATA/DGE/DUDGE/MOPOPGEN/PROJECTS/CG2025P032_Myeloma_neoantigens/CGA0084_Neoantigen_prediction')
-
-# Read all filtered TSV files from MUK9 directory and combine with sample names
-#muk9_dir <- './MUK9_expressionfiltered/Relapse_expressed' #give path to folders with pvacseq output 
-muk9_dir <- './MUK9_NOexpression/Relapse_noexpression'
-sample_dirs <- list.dirs(muk9_dir, recursive = FALSE)
-
-neoag_MUK9_relapse <- merging_pvacseq_combined_results(sample_dirs)
-
-graphs_rel <- neoag_counts_plot(neoag_MUK9) 
-
-test <- recurrence(neoag_MUK9_relapse, epitope_or_HGVSp_or_both = "both")
-
-#####################################################
-##########.  Baseline
-#####################################################
-muk9_dir <- './MUK9_NOexpression/Baseline_noexpression'
-sample_dirs <- list.dirs(muk9_dir, recursive = FALSE)
-neoag_MUK9_baseline <- merging_pvacseq_combined_results(sample_dirs)
-
-neoag_MUK9_baseline <- neoag_MUK9_baseline |>
-  filter(SAMPLE %in% c(rel_long$SAMPLE))
-
-graphs_base <- neoag_counts_plot(neoag_MUK9_baseline) 
-test <- recurrence(neoag_MUK9_baseline, epitope_or_HGVSp_or_both = "both")
-
-comparing_neoag_paired(neoag_MUK9_relapse, neoag_MUK9_baseline)
-
-
-graphs <- analyses(neoag_MUK9_baseline)
