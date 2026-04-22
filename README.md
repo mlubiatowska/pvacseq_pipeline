@@ -25,4 +25,4 @@ It takes arguments:
 1. *NAMING INSIDE FILES.* inside the expression matrix there must be --id-column ${sample_name}_B \ --expression-column "ENSEMBL_Gene_ID" and in the VCF --sample-name ${name}-T --> change in the config file if necessary
 2. *INSTALLATION* all instalations specified by pavtools for pvacseq as well as toolf for input file preparation must be installed (follow https://pvactools.readthedocs.io/en/latest/pvacseq/input_file_prep.html) 
 
-
+NOTE: neoag_graph.R was used for analysis and generating graphs.
