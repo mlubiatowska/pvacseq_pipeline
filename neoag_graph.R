@@ -59,18 +59,33 @@ neoag_counts_plot <- function(out_df) {
   all_long <- burden_all |>
     left_join(burden_classI, by = "SAMPLE") |>
     left_join(burden_class2, by = "SAMPLE") |>
-    add_column(Expression = "Yes") |>
+    mutate(
+      Class_I_neoantigens = tidyr::replace_na(Class_I_neoantigens, 0),
+      Class_II_neoantigens = tidyr::replace_na(Class_II_neoantigens, 0)
+    ) |>
     pivot_longer(
       cols = Total_neoantigens:Class_II_neoantigens,
       names_to = "Neoantigens",
       values_to = "Count"
+    ) |>
+    mutate(
+      Neoantigens = factor(
+        Neoantigens,
+        levels = c(
+          "Class_I_neoantigens",
+          "Class_II_neoantigens",
+          "Total_neoantigens"
+        )
+      )
     )
   
   # Create plot
   p <- ggplot(all_long, aes(x = Neoantigens, y = Count)) +
-    geom_boxplot(fill = "steelblue") +
-    geom_point(position = position_jitterdodge(jitter.width = 0.5, dodge.width = 0.7), alpha = 0.7) +
-    theme_bw()
+    geom_violin(fill = "lightblue", alpha = 0.5, trim = FALSE) +
+    geom_boxplot(width = 0.3, fill = "steelblue", outlier.shape = NA) +
+    geom_point(position = position_jitter(width = 0.2), alpha = 0.4) +
+    theme_bw() +
+    theme(text = element_text(size = 20))
   
   # Calculate and print statistics
   med_total <- median(burden_all$Total_neoantigens)
@@ -80,9 +95,9 @@ neoag_counts_plot <- function(out_df) {
   med_class2 <- median(burden_class2$Class_II_neoantigens)
   sd_class2 <- sd(burden_class2$Class_II_neoantigens)
   
-  cat(sprintf("Overall median ± sd = %.1f ± %.1f\n", med_total, sd_total))
-  cat(sprintf("Class I neoag median ± sd = %.1f ± %.1f\n", med_classI, sd_classI))
-  cat(sprintf("Class II neoag median ± sd = %.1f ± %.1f\n", med_class2, sd_class2))
+  cat(sprintf("Overall median ?? sd = %.1f ?? %.1f\n", med_total, sd_total))
+  cat(sprintf("Class I neoag median ?? sd = %.1f ?? %.1f\n", med_classI, sd_classI))
+  cat(sprintf("Class II neoag median ?? sd = %.1f ?? %.1f\n", med_class2, sd_class2))
   
   # Return results as a list
   return(list(
@@ -113,17 +128,19 @@ comparing_neoag_paired <- function(out_df_relapse, out_df_baseline) {
   p <- ggplot(long_base_rel, aes(x = Condition, y = Count, fill = Condition)) +
     geom_boxplot(outlier.shape = NA) +
     scale_fill_brewer(palette = "Set1") +
-    
-    geom_line(aes(group = SAMPLE),
-              colour = "grey50", alpha = 0.5) +
-    
-    geom_point(position = position_jitter(width = 0.1),
-               alpha = 0.7) +
-    
+    geom_line(aes(group = SAMPLE), colour = "grey50", alpha = 0.5) +
+    geom_point(alpha = 0.7) +
     facet_wrap(~ Neoantigens) +
-    theme_bw()
+    theme_bw() +
+    theme(text = element_text(size = 20)) +
+    stat_compare_means(paired = TRUE, method = "wilcox.test")
   
-  return(p)
+  return(list(
+    stats_baseline = graphs_base$statistics,
+    stats_relapse = graphs_rel$statistics,
+    plot = p
+    )
+  )
 }
 
 recurrence <- function(out_df, epitope_or_HGVSp_or_both) {
@@ -240,8 +257,8 @@ analyses <- function(out_df) {
     mutate(
       Fold_change_bins = case_when(
         `Median Fold Change` < 0.9 ~ "FC < 0.9",
-        `Median Fold Change` < 1.1 ~ "FC 0.9–1.1",
-        `Median Fold Change` < 3   ~ "FC 1.1–3",
+        `Median Fold Change` < 1.1 ~ "FC 0.9 - 1.1",
+        `Median Fold Change` < 3   ~ "FC 1.1 - 3",
         TRUE                       ~ "FC > 3"
       )
     ) |>
@@ -258,8 +275,8 @@ analyses <- function(out_df) {
           Fold_change_bins,
           levels = c(
             "FC < 0.9",
-            "FC 0.9–1.1",
-            "FC 1.1–3",
+            "FC 0.9 - 1.1",
+            "FC 1.1 - 3",
             "FC > 3"
           )
         )
@@ -276,12 +293,13 @@ analyses <- function(out_df) {
     geom_bar(fill = "steelblue") +
     scale_fill_brewer(palette = "Blues", direction = -1) +
     theme_bw() +
-    theme(text = element_text(size = 20))
+    theme(text = element_text(size = 15))
   
   IC50_Fc <- ggplot(pvac, aes(x = `Median Fold Change`)) +
-    geom_histogram(bins = 50,  fill = "steelblue") +
+    geom_histogram(bins = 50, fill = "steelblue") +
+    scale_x_log10() +
     theme_bw() +
-    labs(x = "Median Fold Change") +
+    labs(x = "Median Fold Change (log scale)") +
     theme(text = element_text(size = 20))
 
   IC50_FC_bins <- ggplot(pvac, aes(x = Fold_change_bins, fill = Fold_change_bins)) +
@@ -306,4 +324,71 @@ analyses <- function(out_df) {
     epitope_length = epitope_length
     )
   )
+}
+
+TMB_correlation_plot <- function(out_df, tmb_df, x_var = "Count", y_var = "total_perMB") {
+  neag_df <- neoag_counts_plot(out_df)
+  
+  correlation_df <- neag_df$long_table |>
+    separate(col = SAMPLE,
+             into = c("SAMPLE", "neoag"),
+             sep = "_"
+    ) |>
+    filter(Neoantigens == "Total_neoantigens") |>
+    left_join(tmb_df, by = join_by(SAMPLE))
+  
+  # Ensure numeric
+  x <- correlation_df[[x_var]]
+  y <- correlation_df[[y_var]]
+  
+  # Remove NA pairs
+  complete_idx <- complete.cases(x, y)
+  x <- x[complete_idx]
+  y <- y[complete_idx]
+  df_clean <- correlation_df[complete_idx, ]
+  
+  # Shapiro-Wilk tests
+  shapiro_x <- shapiro.test(x)
+  shapiro_y <- shapiro.test(y)
+  
+  cat(sprintf("Shapiro %s p = %.4f\n", x_var, shapiro_x$p.value))
+  cat(sprintf("Shapiro %s p = %.4f\n", y_var, shapiro_y$p.value))
+  
+  # Decide method
+  if (shapiro_x$p.value > 0.05 & shapiro_y$p.value > 0.05) {
+    method <- "pearson"
+  } else {
+    method <- "spearman"
+  }
+  
+  cat(sprintf("Using %s correlation\n", method))
+  
+  # Correlation test
+  cor_test <- cor.test(x, y, method = method)
+  
+  r_value <- cor_test$estimate
+  p_value <- cor_test$p.value
+  
+  # Label
+  label <- if (method == "pearson") {
+    sprintf("R = %.2f\np = %.3g", r_value, p_value)
+  } else {
+    sprintf("rho = %.2f\np = %.3g", r_value, p_value)
+  }
+  
+  # Plot
+  p <- ggplot(df_clean, aes(x = .data[[x_var]], y = .data[[y_var]])) +
+    geom_point(alpha = 0.7) +
+    geom_smooth(method = "lm", se = TRUE, colour = "steelblue") +
+    annotate("text", x = Inf, y = Inf, label = label, hjust = 1.1, vjust = 1.5, size = 5) +
+    theme_bw() +
+    theme(text = element_text(size = 20)) +
+    labs(x = x_var, y = y_var, title = paste("Correlation (", method, ")", sep = ""))
+  
+  return(list(
+    plot = p,
+    method = method,
+    cor_test = cor_test,
+    shapiro = list(x = shapiro_x, y = shapiro_y)
+  ))
 }
