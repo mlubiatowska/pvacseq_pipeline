@@ -1,5 +1,5 @@
 process PvacseqLongread {
-    cpus params.cpus
+    cpus params.cpus_pvac
     tag "${name}" 
     container '/data/scratch/DGE/DUDGE/MOPOPGEN/mlubiatowska/pvacseq/pvactools/pvactools.sif'
 
